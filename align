@@ -92,10 +92,12 @@ local JSON = {
 
 
 -- Module --
+
 local module = {}
+
 -- Configure Constraints --
 
-function module.configureAlignment(part0,part1) -- configures the two parts so that they are ready to be aligned. After this is done, you can set the position and orientation of the "part1_attAP" attachment, which is the attachment inside of part1
+function module.configureAlignment(part0,part1,useBodyPosition) -- configures the two parts so that they are ready to be aligned. After this is done, you can set the position and orientation of the "part1_attAP" attachment, which is the attachment inside of part1
 
 	local function create(c,part0)
 		local obj = Instance.new(c)
@@ -160,6 +162,16 @@ function module.configureAlignment(part0,part1) -- configures the two parts so t
 	function data.setori(ori)
 		part1_attO.Orientation = ori
 	end
+	
+	if useBodyPosition then
+		local bp = Instance.new('BodyPosition',part0)
+		bindToStep(function()
+			if bp then
+				bp.Position = part1_attP.Position
+			end
+		end)
+	end
+	
 	return data
 
 end
