@@ -1,0 +1,168 @@
+-- Services
+local get = function(x) return game:GetService(x) end
+local players = get('Players')
+local ws = get('Workspace')
+local rs = get('ReplicatedStorage')
+local rus = get('RunService')
+local uis = get('UserInputService')
+local coregui = get('CoreGui')
+local http = get('HttpService')
+local ts = get('TeleportService')
+
+-- Shorthand
+local plr = players.LocalPlayer
+local char = (plr and (plr.Character or plr.CharacterAdded:Wait()) or nil)
+local hrp = plr and (char:WaitForChild('HumanoidRootPart')) or nil
+local hum = plr and (char:WaitForChild('Humanoid')) or nil if plr then plr.CharacterAdded:Connect(function(c)char=c hrp=c:WaitForChild'HumanoidRootPart'hum=c:WaitForChild('Humanoid')end)end
+local cf = CFrame
+local v3 = Vector3
+local ud2 = UDim2
+local c3 = Color3
+local rgb = c3.fromRGB
+local step = rus.Stepped
+local rstep = rus.RenderStepped
+local heartbeat = rus.Heartbeat
+
+-- Functions
+local function bind(k,callback)
+	return uis.InputBegan:Connect(function(io,gpe)
+		if Enum.UserInputType[k] then
+			if io.UserInputType == Enum.UserInputType[k] then
+				callback()
+			end
+		elseif Enum.KeyCode[k] then
+			if io.KeyCode == Enum.KeyCode[k] then
+				callback()
+			end
+		end
+	end)
+end
+
+local function bindToStep(callback,doDebounce,debounceWait)
+	local debounce = false
+	step:Connect(function()
+		if not debounce then
+			debounce = doDebounce ~= nil
+			callback()
+			if debounceWait and doDebounce then
+				wait(debounceWait)
+			end
+			debounce = false
+		end
+	end)
+end
+
+local function bindToRenderStep(callback,doDebounce,debounceWait)
+	local debounce = false
+	rstep:Connect(function()
+		if not debounce then
+			debounce = doDebounce ~= nil
+			callback()
+			if debounceWait and doDebounce then
+				wait(debounceWait)
+			end
+			debounce = false
+		end
+	end)
+end
+
+local function bindToHeartbeat(callback,doDebounce,debounceWait)
+	local debounce = false
+	heartbeat:Connect(function()
+		if not debounce then
+			debounce = doDebounce ~= nil
+			callback()
+			if debounceWait and doDebounce then
+				wait(debounceWait)
+			end
+			debounce = false
+		end
+	end)
+end
+
+local JSON = {
+	stringify = function(...) return http:JSONEncode(...) end;
+	parse = function(...) return http:JSONDecode(...) end;
+}
+
+
+
+------------------------------------------------------------------------------------------------------------------
+
+
+
+-- Module --
+local module = {}
+-- Configure Constraints --
+
+function module.configureAlignment(part0,part1) -- configures the two parts so that they are ready to be aligned. After this is done, you can set the position and orientation of the "part1_attAP" attachment, which is the attachment inside of part1
+
+	local function create(c,part0)
+		local obj = Instance.new(c)
+		for i,v in pairs(part0) do
+			obj[i] = v
+		end
+		return obj
+	end
+
+	local part0_attP = create('Attachment',{
+		Parent = part0;
+	})
+
+	local part1_attP = create('Attachment',{
+		Parent = part1;
+	})
+
+	local part0_attO = create('Attachment',{
+		Parent = part0;
+	})
+
+	local part1_attO = create('Attachment',{
+		Parent = part1;
+	})
+
+	local ap = create('AlignPosition',{
+		Parent = part0;
+		ApplyAtCenterOfMass = true;
+		RigidityEnabled = true;
+		MaxForce = math.huge;
+		MaxVelocity = math.huge;
+		Responsiveness = 200;
+		Attachment0 = part0_attP;
+		Attachment1 = part1_attP;
+	})
+	local ao = create('AlignOrientation',{
+		Parent = part0;
+		RigidityEnabled = true;
+		Responsiveness = 200;
+		Attachment0 = part0_attO;
+		Attachment1 = part1_attO;
+	})
+	local data = {
+		info = {
+			alignPos = ap;
+			alignOri = ao;
+			attachments = {
+				part0 = {
+					pos = part0_attP;
+					ori = part0_attO;
+				};
+				part1 = {
+					pos = part1_attP;
+					ori = part1_attO;
+				};
+			}
+		};
+	}
+	function data.setpos(pos)
+		part1_attP.Position = pos
+	end
+	function data.setori(ori)
+		part1_attO.Orientation = ori
+	end
+	return data
+
+end
+
+-- Return the module --
+return module
